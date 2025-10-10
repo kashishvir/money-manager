@@ -50,12 +50,15 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization","Content-Type", "Accept"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager() {
