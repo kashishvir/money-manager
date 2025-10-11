@@ -89,6 +89,10 @@ public class ProfileService {
                 .build();
     }
 
+    public void deleteProfileByEmail(String email) {
+        profileRepository.deleteByEmail(email);
+    }
+
     public boolean activationProfile(String activationToken){
         log.info("🔑 Activation request received for token: {}", activationToken);
         return profileRepository.findByActivationToken(activationToken)

@@ -11,4 +11,6 @@ public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
     //select * from tbl_profiles where activation_token = ?
     Optional<ProfileEntity> findByActivationToken(String activationToken);
+
+    void deleteByEmail(String email); // custom delete method
 }

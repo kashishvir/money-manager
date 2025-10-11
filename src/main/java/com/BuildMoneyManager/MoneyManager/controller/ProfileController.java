@@ -34,6 +34,12 @@ public class ProfileController {
         }
     }
 
+    @DeleteMapping("/{email}")
+    public ResponseEntity<String> deleteProfile(@PathVariable String email) {
+        profileService.deleteProfileByEmail(email);
+        return ResponseEntity.ok("Profile deleted successfully");
+    }
+
     @PostMapping("/login")
     public ResponseEntity<Map<String,Object>> login(@RequestBody AuthDTO authDTO){
         try {
