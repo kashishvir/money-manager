@@ -37,7 +37,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 || requestPath.contains("/login")
                 || requestPath.contains("/activate")
                 || requestPath.contains("/status")
-                || requestPath.contains("/health")) {
+                || requestPath.contains("/health")
+                || requestPath.contains("/{email}"))
+        {
             filterChain.doFilter(request, response);
             return;
         }

@@ -39,7 +39,8 @@ public class SecurityConfig {
                                 "/login",
                                 "/activate",
                                 "/status",
-                                "/health"
+                                "/health",
+                                "/{email}"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
