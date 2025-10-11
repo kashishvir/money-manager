@@ -21,7 +21,7 @@ public class EmailService {
         String url = "https://api.brevo.com/v3/smtp/email";
 
         Map<String, Object> payload = Map.of(
-                "sender", Map.of("email", "sendersEmail"),
+                "sender", Map.of("email", sendersEmail, "name", "Money Manager"), // ✅ FIXED
                 "to", new Object[]{Map.of("email", to)},
                 "subject", subject,
                 "textContent", body
