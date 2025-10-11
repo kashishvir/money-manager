@@ -33,11 +33,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String requestPath = request.getRequestURI();  // safer when context path is present
 
-        if (requestPath.contains("/api/v1.0/register")
-                || requestPath.contains("/api/v1.0/login")
-                || requestPath.contains("/api/v1.0/activate")
-                || requestPath.contains("/api/v1.0/status")
-                || requestPath.contains("/api/v1.0/health")) {
+        if (requestPath.contains("/register")
+                || requestPath.contains("/login")
+                || requestPath.contains("/activate")
+                || requestPath.contains("/status")
+                || requestPath.contains("/health")) {
             filterChain.doFilter(request, response);
             return;
         }
