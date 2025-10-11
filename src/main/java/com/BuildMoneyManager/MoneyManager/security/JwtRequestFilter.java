@@ -21,6 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
+
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
 
@@ -30,17 +31,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String requestPath = request.getServletPath();
+        final String requestPath = request.getRequestURI();  // safer when context path is present
 
-        // ✅ Skip JWT validation for public endpoints
-        if (requestPath.contains("/login") ||
-                requestPath.contains("/register") ||
-                requestPath.contains("/activate") ||
-                requestPath.contains("/status") ||
-                requestPath.contains("/health")) {
+        if (requestPath.contains("/api/v1.0/register")
+                || requestPath.contains("/api/v1.0/login")
+                || requestPath.contains("/api/v1.0/activate")
+                || requestPath.contains("/api/v1.0/status")
+                || requestPath.contains("/api/v1.0/health")) {
             filterChain.doFilter(request, response);
             return;
         }
+
 
         // continue with normal JWT validation
         String jwt = null;

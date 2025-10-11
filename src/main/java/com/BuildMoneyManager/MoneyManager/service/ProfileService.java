@@ -6,23 +6,25 @@ import com.BuildMoneyManager.MoneyManager.entity.ProfileEntity;
 import com.BuildMoneyManager.MoneyManager.repository.ProfileRepository;
 import com.BuildMoneyManager.MoneyManager.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProfileService.class);
 
     private final ProfileRepository profileRepository;
     private final EmailService emailService;
@@ -34,15 +36,32 @@ public class ProfileService {
     private String activationURL;
 
     public ProfileDTO registerProfile(ProfileDTO profileDTO) {
+        log.info("🚀 Starting registration for email: {}", profileDTO.getEmail());
+
         ProfileEntity newProfile = dtoToEntity(profileDTO);
         newProfile.setActivationToken(UUID.randomUUID().toString());
-        newProfile = profileRepository.save(newProfile);
+        log.debug("Generated activation token: {}", newProfile.getActivationToken());
 
-        //send activation email
-        String activationLink = activationURL+"/api/v1.0/activate?token=" + newProfile.getActivationToken();
-        String subject = "Activate your Money Manager account";
-        String body = "Click on the following link to activate your account: " + activationLink;
-        emailService.sendEmail(newProfile.getEmail(), subject, body);
+        try {
+            newProfile = profileRepository.save(newProfile);
+            log.info("✅ Profile saved successfully with ID: {}", newProfile.getId());
+        } catch (Exception e) {
+            log.error("❌ Error while saving profile: {}", e.getMessage(), e);
+            throw e;
+        }
+
+        // Send activation email
+        try {
+            String activationLink = activationURL + "/api/v1.0/activate?token=" + newProfile.getActivationToken();
+            String subject = "Activate your Money Manager account";
+            String body = "Click on the following link to activate your account: " + activationLink;
+
+            emailService.sendEmail(newProfile.getEmail(), subject, body);
+            log.info("📧 Activation email sent to {}", newProfile.getEmail());
+        } catch (Exception e) {
+            log.error("❌ Failed to send activation email: {}", e.getMessage(), e);
+        }
+
         return EntitytoDto(newProfile);
     }
 
@@ -71,16 +90,22 @@ public class ProfileService {
     }
 
     public boolean activationProfile(String activationToken){
+        log.info("🔑 Activation request received for token: {}", activationToken);
         return profileRepository.findByActivationToken(activationToken)
-                .map(profile->{
+                .map(profile -> {
                     profile.setIsActive(true);
                     profileRepository.save(profile);
+                    log.info("✅ Account activated for email: {}", profile.getEmail());
                     return true;
                 })
-                .orElse(false);
+                .orElseGet(() -> {
+                    log.warn("⚠️ Invalid activation token received");
+                    return false;
+                });
     }
 
     public boolean isAccountActive(String email){
+        log.info("Checking if account is active for email: {}", email);
         return profileRepository.findByEmail(email)
                 .map(ProfileEntity::getIsActive)
                 .orElse(false);
@@ -88,17 +113,18 @@ public class ProfileService {
 
     public ProfileEntity getCurrentProfile(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.debug("Fetching current profile for authenticated user: {}", authentication.getName());
         return profileRepository.findByEmail(authentication.getName())
-                .orElseThrow(()-> new UsernameNotFoundException("Profile not found with email:" + authentication.getName()));
+                .orElseThrow(() -> new UsernameNotFoundException("Profile not found with email:" + authentication.getName()));
     }
 
     public ProfileDTO getPublicProfile(String email){
-        ProfileEntity currUser = null;
-        if(email==null){
+        ProfileEntity currUser;
+        if(email == null){
             currUser = getCurrentProfile();
-        }else{
+        } else {
             currUser = profileRepository.findByEmail(email)
-                    .orElseThrow(()-> new UsernameNotFoundException("Profile not found with email: "+email));
+                    .orElseThrow(() -> new UsernameNotFoundException("Profile not found with email: " + email));
         }
         return ProfileDTO.builder()
                 .id(currUser.getId())
@@ -111,15 +137,29 @@ public class ProfileService {
     }
 
     public Map<String, Object> authenticateAndGeneratetoken(AuthDTO authDTO){
-        try{
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authDTO.getEmail(), authDTO.getPassword()));
-            //Generate jwt token
+        log.info("🔐 Authentication attempt for email: {}", authDTO.getEmail());
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authDTO.getEmail(), authDTO.getPassword())
+            );
+            log.info("✅ Authentication successful for {}", authDTO.getEmail());
+
+            // Check activation status
+            if (!isAccountActive(authDTO.getEmail())) {
+                log.warn("🚫 Account is not active for {}", authDTO.getEmail());
+                throw new RuntimeException("Account is not active. Please activate your account first.");
+            }
+
+            // Generate JWT token
             String token = jwtUtil.generateToken(authDTO.getEmail());
+            log.info("🎟️ JWT token generated for {}", authDTO.getEmail());
+
             return Map.of(
-                    "token",token,
+                    "token", token,
                     "user", getPublicProfile(authDTO.getEmail())
             );
-        }catch(Exception e){
+        } catch (Exception e) {
+            log.error("❌ Authentication failed for {}: {}", authDTO.getEmail(), e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
