@@ -40,7 +40,8 @@ public class SecurityConfig {
                                 "/activate",
                                 "/status",
                                 "/health",
-                                "/{email}"
+                                "/{email}",
+                                "/email/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
