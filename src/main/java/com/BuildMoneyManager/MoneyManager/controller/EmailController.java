@@ -29,6 +29,7 @@ public class EmailController {
         ProfileEntity profile = profileService.getCurrentProfile();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         excelService.writeIncomesToExcel(baos, incomeService.getCurrentMonthIncomesForCurrentUser());
+        baos.flush();
         emailService.sendEmailWithAttachment(profile.getEmail(),
                 "Your Income Excel Report",
                 "Please find attached your income report",
