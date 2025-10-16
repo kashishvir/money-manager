@@ -1,37 +1,45 @@
 package com.BuildMoneyManager.MoneyManager.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    @Value("${brevo.api.key}")
-    private String apiKey;
+    private final JavaMailSender mailSender;
 
     @Value("${spring.mail.properties.mail.smtp.from}")
-    private String sendersEmail;
+    private String fromEmail;
 
     public void sendEmail(String to, String subject, String body) {
-        String url = "https://api.brevo.com/v3/smtp/email";
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(body);
+            mailSender.send(message);
+        }catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
 
-        Map<String, Object> payload = Map.of(
-                "sender", Map.of("email", sendersEmail, "name", "Money Manager"), // ✅ FIXED
-                "to", new Object[]{Map.of("email", to)},
-                "subject", subject,
-                "textContent", body
-        );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("api-key", apiKey);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
-        new RestTemplate().postForEntity(url, entity, String.class);
+    public void sendEmailWithAttachment(String to, String subject, String body, byte[] attachment, String filename) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        helper.setFrom(fromEmail);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(body);
+        helper.addAttachment(filename, new ByteArrayResource(attachment));
+        mailSender.send(message);
     }
 }
