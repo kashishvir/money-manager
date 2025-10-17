@@ -46,9 +46,7 @@ public class EmailController {
         emailService.sendEmailWithAttachment(
                 profile.getEmail(),
                 "Your Expense Excel Report",
-                "Please find attached your expense report.",
-                baos.toByteArray(),
-                "expenses.xlsx");
+                "Please find attached your expense report.", baos.toByteArray(), "expenses.xlsx");
         return ResponseEntity.ok(null);
     }
 }
