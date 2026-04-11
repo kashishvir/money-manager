@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.BuildMoneyManager</groupId>
-	<artifactId>MoneyManager </artifactId>
+	<artifactId>MoneyManager</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>MoneyManager </name>
+	<name>MoneyManager</name>
 	<description>Money Management System Project</description>
 	<url/>
 	<licenses>
