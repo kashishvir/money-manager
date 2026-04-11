@@ -18,9 +18,7 @@ services:
         sync: false
       - key: MONEY_MANAGER_BACKEND_URL
         sync: false
-      - key: YOUR_BREVO_API_KEY
+      - key: SPRING_MAIL_USERNAME
         sync: false
-      - key: Brevo_Username
-        sync: false
-      - key: Brevo_Password
+      - key: SPRING_MAIL_PASSWORD
         sync: false
