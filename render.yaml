@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: money-manager-backend
+    env: docker
+    region: singapore
+    plan: free
+    healthCheckPath: /api/v1.0/status # Or similar, or just remove if none
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: MONEY_MANAGER_FRONTEND_URL
+        sync: false
+      - key: MONEY_MANAGER_BACKEND_URL
+        sync: false
+      - key: YOUR_BREVO_API_KEY
+        sync: false
+      - key: Brevo_Username
+        sync: false
+      - key: Brevo_Password
+        sync: false
