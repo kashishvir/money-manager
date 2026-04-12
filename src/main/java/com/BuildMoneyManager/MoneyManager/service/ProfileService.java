@@ -36,42 +36,19 @@ public class ProfileService {
     @Value("${app.activation.url}")
     private String activationURL;
 
-    @Transactional
     public ProfileDTO registerProfile(ProfileDTO profileDTO) {
         log.info("🚀 Starting registration for email: {}", profileDTO.getEmail());
 
         ProfileEntity newProfile = dtoToEntity(profileDTO);
-        newProfile.setActivationToken(UUID.randomUUID().toString());
-        log.debug("Generated activation token: {}", newProfile.getActivationToken());
+        // Automatically activate the account without email verification
+        newProfile.setIsActive(true);
 
         try {
             newProfile = profileRepository.save(newProfile);
             log.info("✅ Profile saved successfully with ID: {}", newProfile.getId());
         } catch (Exception e) {
             log.error("❌ Error while saving profile: {}", e.getMessage(), e);
-            throw e;
-        }
-
-        // Send activation email
-        // NOTE: activationURL is the backend base URL (e.g. https://your-app.onrender.com)
-        // Spring's context-path (/api/v1.0) is already applied, so we include the full path here.
-        try {
-            String activationLink = activationURL + "/api/v1.0/activate?token=" + newProfile.getActivationToken();
-            log.info("🔗 Activation link: {}", activationLink);
-            String subject = "Activate your Money Manager account";
-            String body = "<p>Hi " + newProfile.getFullName() + ",</p>"
-                    + "<p>Thank you for signing up! Please click the button below to activate your Money Manager account:</p>"
-                    + "<a href='" + activationLink + "' style='display:inline-block;padding:12px 24px;background-color:#6366f1;"
-                    + "color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:15px;'>Activate My Account</a>"
-                    + "<p>Or copy and paste this link into your browser:</p>"
-                    + "<p>" + activationLink + "</p>"
-                    + "<br><p>Best regards,<br>Money Manager Team</p>";
-
-            emailService.sendEmail(newProfile.getEmail(), subject, body);
-            log.info("📧 Activation email sent to {}", newProfile.getEmail());
-        } catch (Exception e) {
-            log.error("❌ Failed to send activation email to {}: {}", newProfile.getEmail(), e.getMessage(), e);
-            throw new RuntimeException("Failed to send activation email. Please try again later.", e);
+            throw new RuntimeException("Failed to register profile. Email might already exist.", e);
         }
 
         return EntitytoDto(newProfile);
