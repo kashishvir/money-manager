@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -35,6 +36,7 @@ public class ProfileService {
     @Value("${app.activation.url}")
     private String activationURL;
 
+    @Transactional
     public ProfileDTO registerProfile(ProfileDTO profileDTO) {
         log.info("🚀 Starting registration for email: {}", profileDTO.getEmail());
 
@@ -69,6 +71,7 @@ public class ProfileService {
             log.info("📧 Activation email sent to {}", newProfile.getEmail());
         } catch (Exception e) {
             log.error("❌ Failed to send activation email to {}: {}", newProfile.getEmail(), e.getMessage(), e);
+            throw new RuntimeException("Failed to send activation email. Please try again later.", e);
         }
 
         return EntitytoDto(newProfile);
