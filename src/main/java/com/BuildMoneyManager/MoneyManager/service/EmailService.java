@@ -25,16 +25,18 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             // true indicates multipart message
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            
+
             helper.setFrom(senderEmail);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true); // true indicates HTML
-            
+
             mailSender.send(message);
             System.out.println("✅ Email sent successfully to " + to);
         } catch (Exception e) {
-            System.err.println("❌ Failed to send email: " + e.getMessage());
+            System.err.println("❌ Failed to send email to " + to + ": " + e.getMessage());
+            // Re-throw so callers can detect and log the failure
+            throw new RuntimeException("Failed to send email to " + to, e);
         }
     }
 
