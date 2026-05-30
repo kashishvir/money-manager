@@ -49,7 +49,15 @@ public class CategoryService {
         ProfileEntity profile = profileService.getCurrentProfile();
         CategoryEntity existingCategory = categoryRepository.findByIdAndProfileId(categoryId, profile.getId())
                 .orElseThrow(() -> new RuntimeException("Category not found or not accessible"));
+        
+        // Check if name has changed and if the new name already exists for this profile
+        if (!existingCategory.getName().equalsIgnoreCase(dto.getName()) &&
+            categoryRepository.existsByNameAndProfileId(dto.getName(), profile.getId())) {
+            throw new RuntimeException("Category with this name already exists!");
+        }
+
         existingCategory.setName(dto.getName());
+        existingCategory.setType(dto.getType());
         existingCategory.setIcon(dto.getIcon());
         existingCategory = categoryRepository.save(existingCategory);
         return EntityToDTO(existingCategory);

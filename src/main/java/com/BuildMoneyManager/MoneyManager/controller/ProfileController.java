@@ -43,16 +43,20 @@ public class ProfileController {
     @PostMapping("/login")
     public ResponseEntity<Map<String,Object>> login(@RequestBody AuthDTO authDTO){
         try {
-            if(!profileService.isAccountActive(authDTO.getEmail())){
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                        Map.of("message", "Account is not active. Please activate your account first.")
-                );
-            }
             Map<String,Object> response = profileService.authenticateAndGeneratetoken(authDTO);
             return ResponseEntity.ok(response);
         }catch(Exception e){
+            String errorMsg = e.getMessage();
+            if (e.getCause() != null) {
+                errorMsg = e.getCause().getMessage();
+            }
+            if (errorMsg != null && errorMsg.contains("RuntimeException:")) {
+                errorMsg = errorMsg.substring(errorMsg.indexOf("RuntimeException:") + 17).trim();
+            } else if (errorMsg != null && errorMsg.contains("Bad credentials")) {
+                errorMsg = "Invalid email or password.";
+            }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    Map.of("message",e.getMessage())
+                    Map.of("message", errorMsg != null ? errorMsg : "Authentication failed")
             );
         }
     }

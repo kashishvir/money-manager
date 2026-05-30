@@ -22,6 +22,8 @@ import java.io.IOException;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JwtRequestFilter.class);
+
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
 
@@ -38,7 +40,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 || requestPath.contains("/activate")
                 || requestPath.contains("/status")
                 || requestPath.contains("/health")
-                || requestPath.contains("/{email}"))
+                || requestPath.contains("/{email}")
+                || requestPath.contains("/h2-console"))
         {
             filterChain.doFilter(request, response);
             return;
@@ -51,7 +54,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
+            try {
+                username = jwtUtil.extractUsername(jwt);
+            } catch (Exception e) {
+                log.warn("⚠️ Failed to extract username from JWT: {}", e.getMessage());
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

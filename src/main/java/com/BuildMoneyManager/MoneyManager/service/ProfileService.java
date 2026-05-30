@@ -39,6 +39,11 @@ public class ProfileService {
     public ProfileDTO registerProfile(ProfileDTO profileDTO) {
         log.info("🚀 Starting registration for email: {}", profileDTO.getEmail());
 
+        // Trim and lowercase email to normalize
+        if (profileDTO.getEmail() != null) {
+            profileDTO.setEmail(profileDTO.getEmail().trim().toLowerCase());
+        }
+
         ProfileEntity newProfile = dtoToEntity(profileDTO);
         // Automatically activate the account without email verification
         newProfile.setIsActive(true);
@@ -131,6 +136,12 @@ public class ProfileService {
 
     public Map<String, Object> authenticateAndGeneratetoken(AuthDTO authDTO){
         log.info("🔐 Authentication attempt for email: {}", authDTO.getEmail());
+        
+        // Trim and lowercase email to normalize
+        if (authDTO.getEmail() != null) {
+            authDTO.setEmail(authDTO.getEmail().trim().toLowerCase());
+        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authDTO.getEmail(), authDTO.getPassword())

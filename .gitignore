@@ -30,3 +30,7 @@ build/
 ### VS Code ###
 .vscode/
 target/
+
+### Local DB & Logs ###
+data/
+*.log

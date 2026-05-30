@@ -33,6 +33,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())) // Allow H2 Console frames
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/register",
@@ -42,7 +43,8 @@ public class SecurityConfig {
                                 "/health",
                                 "/test-email",
                                 "/{email}",
-                                "/email/**"
+                                "/email/**",
+                                "/h2-console/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
